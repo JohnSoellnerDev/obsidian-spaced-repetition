@@ -1,5 +1,6 @@
 import { Card } from "src/card";
 import { CardListType, Deck } from "src/deck";
+import { Note } from "src/note";
 import { Question } from "src/question";
 import { TopicPath } from "src/topic-path";
 import { globalRandomNumberProvider, WeightedRandomNumber } from "src/utils/numbers";
@@ -35,6 +36,7 @@ export interface IDeckTreeIterator {
     deleteCurrentQuestionFromAllDecks(): boolean;
     moveCurrentCardToEndOfList(): void;
     nextCard(): boolean;
+    moveAllNoteCardsToEnd(note: Note): void;
 }
 
 class SingleDeckIterator {
@@ -365,6 +367,30 @@ export class DeckTreeIterator implements IDeckTreeIterator {
 
     moveCurrentCardToEndOfList(): void {
         this.singleDeckIterator.moveCurrentCardToEndOfList();
+    }
+
+    moveAllNoteCardsToEnd(note: Note): void {
+        if (!this.deckArray || this.deckArray.length === 0) return;
+
+        // Move all cards belonging to the specified note to the end of the list
+        for (const deck of this.deckArray) {
+            deck.newFlashcards = DeckTreeIterator.moveNoteCardsToEnd(deck.newFlashcards, note);
+            deck.dueFlashcards = DeckTreeIterator.moveNoteCardsToEnd(deck.dueFlashcards, note);
+        }
+
+        // Clear current card pointer so nextCard() recalculates properly after reordering
+        this.singleDeckIterator.setNoCurrentCard();
+    }
+
+    private static moveNoteCardsToEnd(list: Card[], note: Note): Card[] {
+        if (!list || list.length === 0) return list;
+        const keep: Card[] = [];
+        const move: Card[] = [];
+        for (const c of list) {
+            if (c?.question?.note === note) move.push(c);
+            else keep.push(c);
+        }
+        return keep.concat(move);
     }
 
     private removeCurrentDeckIfEmpty(): void {

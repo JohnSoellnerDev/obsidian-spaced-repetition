@@ -16,6 +16,7 @@ export default {
     HARD: "Schwer",
     GOOD: "Gut",
     EASY: "Einfach",
+    AGAIN: "Nochmal",
     SHOW_ANSWER: "Zeige Antwort",
     CARD_PROGRESS_RESET: "Kartenfortschritt wurde zurückgesetzt.",
     SAVE: "Speichern",

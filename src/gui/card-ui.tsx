@@ -67,6 +67,7 @@ export class CardUI {
     public hardButton: HTMLButtonElement;
     public goodButton: HTMLButtonElement;
     public easyButton: HTMLButtonElement;
+    public againButton: HTMLButtonElement;
     public answerButton: HTMLButtonElement;
     public lastPressed: number;
 
@@ -470,6 +471,7 @@ export class CardUI {
 
     private _createResponseButtons() {
         this._createShowAnswerButton();
+        this._createAgainButton();
         this._createHardButton();
         this._createGoodButton();
         this._createEasyButton();
@@ -481,6 +483,7 @@ export class CardUI {
         this.hardButton.addClass("sr-is-hidden");
         this.goodButton.addClass("sr-is-hidden");
         this.easyButton.addClass("sr-is-hidden");
+        this.againButton.addClass("sr-is-hidden");
     }
 
     private _createShowAnswerButton() {
@@ -531,6 +534,30 @@ export class CardUI {
         this.easyButton.setText(this.settings.flashcardEasyText);
         this.easyButton.addEventListener("click", () => {
             this._processReview(ReviewResponse.Easy);
+        });
+    }
+
+    private _createAgainButton() {
+        this.againButton = this.response.createEl("button");
+        this.againButton.addClasses([
+            "sr-response-button",
+            "sr-hard-button",
+            "sr-bg-red",
+            "sr-is-hidden",
+        ]);
+        this.againButton.setText(t("AGAIN"));
+        this.againButton.addEventListener("click", async () => {
+            const timeNow = now();
+            if (
+                this.lastPressed &&
+                timeNow - this.lastPressed < this.plugin.data.settings.reviewButtonDelay
+            ) {
+                return;
+            }
+            this.lastPressed = timeNow;
+
+            this.reviewSequencer.againCurrentCard();
+            await this._showNextCard();
         });
     }
 
@@ -593,6 +620,7 @@ export class CardUI {
         this.answerButton.addClass("sr-is-hidden");
         this.hardButton.removeClass("sr-is-hidden");
         this.easyButton.removeClass("sr-is-hidden");
+        this.againButton.removeClass("sr-is-hidden");
 
         if (this.reviewMode === FlashcardReviewMode.Cram) {
             this.response.addClass("is-cram");

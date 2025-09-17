@@ -27,6 +27,7 @@ export interface IFlashcardReviewSequencer {
     getDeckStats(topicPath: TopicPath): DeckStats;
     getSubDecksWithCardsInQueue(deck: Deck): Deck[];
     skipCurrentCard(): void;
+    againCurrentCard(): void;
     determineCardSchedule(response: ReviewResponse, card: Card): RepItemScheduleInfo;
     processReview(response: ReviewResponse): Promise<void>;
     updateCurrentQuestionText(text: string): Promise<void>;
@@ -221,6 +222,17 @@ export class FlashcardReviewSequencer implements IFlashcardReviewSequencer {
 
     skipCurrentCard(): void {
         this.cardSequencer.deleteCurrentQuestionFromAllDecks();
+    }
+
+    againCurrentCard(): void {
+        // Move all cards from the current note to the end of the queue in the current deck
+        const note = this.currentNote;
+        if (note) {
+            this.cardSequencer.moveAllNoteCardsToEnd(note);
+        } else {
+            this.cardSequencer.moveCurrentCardToEndOfList();
+        }
+        this.cardSequencer.nextCard();
     }
 
     private deleteCurrentCard(): void {
